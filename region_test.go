@@ -50,6 +50,27 @@ func TestRegionIntersection(t *testing.T) {
 	}
 }
 
+func TestClip(t *testing.T) {
+	tests := [][]Region{
+		{{10, 20}, {25, 35}, {10, 20}},
+		{{10, 20}, {0, 5}, {10, 20}},
+		{{10, 20}, {0, 11}, {11, 20}},
+		{{10, 20}, {0, 15}, {15, 20}},
+		{{10, 20}, {15, 30}, {10, 15}},
+		{{10, 20}, {20, 30}, {10, 20}},
+		{{10, 20}, {0, 30}, {10, 20}},
+		{{10, 20}, {10, 20}, {10, 20}},
+	}
+	for i := range tests {
+		a := tests[i][0]
+		ignoreRegion := tests[i][1]
+		a = a.Clip(ignoreRegion)
+		if a != tests[i][2] {
+			t.Errorf("Expected %v, got: %v", tests[i][2], a)
+		}
+	}
+}
+
 // Verified against ST3
 func TestContains(t *testing.T) {
 	type Test struct {

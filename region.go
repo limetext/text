@@ -58,8 +58,27 @@ func (r Region) Cover(other Region) Region {
 }
 
 // Clips this Region against the Region provided in the argument.
-func (r Region) Clip(other Region) Region {
-	return Region{Clamp(other.Begin(), other.End(), r.A), Clamp(other.Begin(), other.End(), r.B)}
+// That would be if any part of this region is inside of the
+// region specified by the argument, that part of the region
+// is removed from this region.
+func (r Region) Clip(other Region) (ret Region) {
+	if other.Covers(r) {
+		// this region is a subregion within the other region
+		return r
+	}
+	ret.A, ret.B = r.Begin(), r.End()
+	other.A, other.B = other.Begin(), other.End()
+
+	if ret.A >= other.A && ret.A < other.B {
+		ret.A = other.B
+	}
+	if ret.B >= other.A && ret.B <= other.B {
+		ret.B = other.A
+	}
+	if ret.B < ret.A {
+		ret.B = ret.A
+	}
+	return
 }
 
 // Returns whether the two regions intersects or not
