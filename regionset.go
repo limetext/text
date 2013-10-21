@@ -144,3 +144,16 @@ func (r *RegionSet) HasEmpty() bool {
 	}
 	return false
 }
+
+// Cuts away the provided region from the set, and returns
+// the new set
+func (r *RegionSet) Cut(r2 Region) (ret RegionSet) {
+	for i := 0; i < len(r.regions); i++ {
+		for _, xor := range r.regions[i].Cut(r2) {
+			if !xor.Empty() {
+				ret.Add(xor)
+			}
+		}
+	}
+	return
+}

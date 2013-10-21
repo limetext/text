@@ -81,6 +81,22 @@ func (r Region) Clip(other Region) (ret Region) {
 	return
 }
 
+// Cuts away the parts of the region that is in the argument region.
+// This is similar to Clip, except that the result can be multiple
+// regions.
+func (r Region) Cut(other Region) (ret []Region) {
+	if r.Contains(other.A) {
+		ret = append(ret, Region{r.A, other.A})
+	}
+	if r.Contains(other.B) {
+		ret = append(ret, Region{other.B, r.B})
+	}
+	if len(ret) == 0 && !other.Covers(r) {
+		ret = append(ret, r)
+	}
+	return
+}
+
 // Returns whether the two regions intersects or not
 func (r Region) Intersects(other Region) bool {
 	return r == other || r.Intersection(other).Size() > 0

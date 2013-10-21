@@ -87,3 +87,23 @@ func TestRegionSetAdjust2(t *testing.T) {
 		t.Errorf("Not as expected: %v", r)
 	}
 }
+
+func TestRegionSetCut(t *testing.T) {
+	tests := []struct {
+		A, B Region
+		Out  RegionSet
+	}{
+		{Region{10, 20}, Region{0, 5}, RegionSet{regions: []Region{{10, 20}}}},
+		{Region{10, 20}, Region{12, 15}, RegionSet{regions: []Region{{10, 12}, {15, 20}}}},
+		{Region{10, 20}, Region{5, 15}, RegionSet{regions: []Region{{15, 20}}}},
+		{Region{10, 20}, Region{15, 20}, RegionSet{regions: []Region{{10, 15}}}},
+	}
+	for i, test := range tests {
+		var rs RegionSet
+		rs.Add(test.A)
+		t.Log(rs)
+		if res := rs.Cut(test.B); !reflect.DeepEqual(res, test.Out) {
+			t.Errorf("Test %d; Expected %v, got: %v", i, test.Out, res)
+		}
+	}
+}
