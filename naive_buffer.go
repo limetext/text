@@ -1,28 +1,28 @@
-package primitives
+package text
 
 const chunk_size = 256 * 1024
 
 type (
-	NaiveBuffer struct {
+	naiveBuffer struct {
 		data []rune
 	}
 )
 
-func (b *NaiveBuffer) Size() int {
+func (b *naiveBuffer) Size() int {
 	return len(b.data)
 }
 
-func (buf *NaiveBuffer) Index(pos int) rune {
+func (buf *naiveBuffer) Index(pos int) rune {
 	return buf.data[pos]
 }
 
-func (buf *NaiveBuffer) SubstrR(r Region) []rune {
+func (buf *naiveBuffer) SubstrR(r Region) []rune {
 	l := len(buf.data)
 	a, b := Clamp(0, l, r.Begin()), Clamp(0, l, r.End())
 	return buf.data[a:b]
 }
 
-func (buf *NaiveBuffer) InsertR(point int, value []rune) {
+func (buf *naiveBuffer) InsertR(point int, value []rune) {
 	point = Clamp(0, len(buf.data), point)
 	req := len(buf.data) + len(value)
 	if cap(buf.data) < req {
@@ -40,14 +40,14 @@ func (buf *NaiveBuffer) InsertR(point int, value []rune) {
 	buf.data = buf.data[:req]
 }
 
-func (buf *NaiveBuffer) Erase(point, length int) {
+func (buf *naiveBuffer) Erase(point, length int) {
 	if length == 0 {
 		return
 	}
 	buf.data = append(buf.data[0:point], buf.data[point+length:len(buf.data)]...)
 }
 
-func (b *NaiveBuffer) RowCol(point int) (row, col int) {
+func (b *naiveBuffer) RowCol(point int) (row, col int) {
 	if point < 0 {
 		point = 0
 	} else if l := b.Size(); point > l {
@@ -66,7 +66,7 @@ func (b *NaiveBuffer) RowCol(point int) (row, col int) {
 	return
 }
 
-func (b *NaiveBuffer) TextPoint(row, col int) (i int) {
+func (b *naiveBuffer) TextPoint(row, col int) (i int) {
 	if row == 0 && col == 0 {
 		return 0
 	}

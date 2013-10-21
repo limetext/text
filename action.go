@@ -1,4 +1,4 @@
-package primitives
+package text
 
 import (
 	"fmt"
@@ -47,10 +47,14 @@ func (ca *CompositeAction) Undo() {
 	}
 }
 
+// Adds the action to this CompositeAction, without first
+// executing the action
 func (ca *CompositeAction) Add(a Action) {
 	ca.actions = append(ca.actions, a)
 }
 
+// Executes the provided action and then adds
+// the action to this CompositeAction
 func (ca *CompositeAction) AddExec(a Action) {
 	ca.Add(a)
 	ca.actions[len(ca.actions)-1].Apply()

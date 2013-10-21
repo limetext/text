@@ -1,4 +1,4 @@
-package primitives
+package text
 
 import (
 	"sync"
@@ -14,6 +14,8 @@ type (
 	IdInterface interface {
 		Id() Id
 	}
+	// An utility struct typically embedded to give
+	// the type a unique id
 	HasId struct {
 		id Id
 	}

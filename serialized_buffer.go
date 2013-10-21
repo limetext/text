@@ -1,4 +1,4 @@
-package primitives
+package text
 
 import (
 	"code.google.com/p/log4go"

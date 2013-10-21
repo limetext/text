@@ -1,4 +1,4 @@
-package primitives
+package text
 
 import (
 	"fmt"
@@ -6,9 +6,13 @@ import (
 )
 
 type (
+	// An utility struct that is typically embedded in
+	// other type structs to make that type implement the SettingsInterface
 	HasSettings struct {
 		settings Settings
 	}
+
+	// Defines an interface for types that have settings
 	SettingsInterface interface {
 		Settings() *Settings
 	}
@@ -34,12 +38,14 @@ func NewSettings() Settings {
 	return Settings{onChangeCallbacks: make(map[string]OnChangeCallback), data: make(settingsMap), parent: nil}
 }
 
+// Returns the parent Settings of this Settings object
 func (s *Settings) Parent() SettingsInterface {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.parent
 }
 
+// Sets the parent Settings of this Settings object
 func (s *Settings) SetParent(p SettingsInterface) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -55,18 +61,25 @@ func (s *Settings) SetParent(p SettingsInterface) {
 	}
 }
 
+// Adds a OnChangeCallback identified with the given key.
+// If a callback is already defined for that name, it is overwritten
 func (s *Settings) AddOnChange(key string, cb OnChangeCallback) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.onChangeCallbacks[key] = cb
 }
 
+// Removes the OnChangeCallback associated with the given key.
 func (s *Settings) ClearOnChange(key string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	delete(s.onChangeCallbacks, key)
 }
 
+// Get the setting identified with the given name.
+// An optional default value may be specified.
+// If the setting does not exist in this object,
+// the parent if available will be queried.
 func (s *Settings) Get(name string, def ...interface{}) interface{} {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -80,6 +93,8 @@ func (s *Settings) Get(name string, def ...interface{}) interface{} {
 	return nil
 }
 
+// Sets the setting identified with the given key to
+// the specified value
 func (s *Settings) Set(name string, val interface{}) {
 	s.lock.Lock()
 	s.data[name] = val
@@ -87,6 +102,8 @@ func (s *Settings) Set(name string, val interface{}) {
 	s.onChange()
 }
 
+// Returns whether the setting identified by this key
+// exists in this settings object
 func (s *Settings) Has(name string) bool {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -100,6 +117,8 @@ func (s *Settings) onChange() {
 	}
 }
 
+// Erases the setting associated with the given key
+// from this settings object
 func (s *Settings) Erase(name string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()

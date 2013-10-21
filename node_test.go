@@ -1,4 +1,4 @@
-package primitives
+package text
 
 import (
 	//	"math/rand"
@@ -149,7 +149,7 @@ func TestNodeInsertR(t *testing.T) {
 		merge = m
 		for i := range od {
 			n := newNode(od)
-			b := NaiveBuffer{}
+			b := naiveBuffer{}
 			b.InsertR(0, od)
 			n.InsertR(i, in)
 			b.InsertR(i, in)
@@ -182,7 +182,7 @@ func TestNodeInsertR(t *testing.T) {
 	for _, m := range merges {
 		for i, o := range offs {
 			n := newNode(od)
-			b := NaiveBuffer{}
+			b := naiveBuffer{}
 			b.InsertR(0, od)
 			n.InsertR(o, in)
 			b.InsertR(o, in)
@@ -241,7 +241,7 @@ func TestNodeRowCol(t *testing.T) {
 	for _, m := range merges {
 		merge = m
 		n := newNode(od)
-		b := NaiveBuffer{}
+		b := naiveBuffer{}
 		b.InsertR(0, od)
 		for i := 0; i < 30; i++ {
 			n.InsertR(n.Size(), in)
@@ -285,7 +285,7 @@ func TestNodeSubstr(t *testing.T) {
 	for _, m := range merges {
 		merge = m
 		n := newNode(od)
-		b := NaiveBuffer{}
+		b := naiveBuffer{}
 		b.InsertR(0, od)
 		for i := 0; i < 10; i++ {
 			n.InsertR(n.Size(), in)
@@ -342,7 +342,7 @@ func TestNodeErase(t *testing.T) {
 		merge = m
 		for i := range od {
 			n := newNode(od)
-			b := NaiveBuffer{}
+			b := naiveBuffer{}
 			b.InsertR(0, od)
 			n.Erase(i, dsize)
 			b.Erase(i, dsize)

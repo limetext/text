@@ -1,4 +1,4 @@
-package primitives
+package text
 
 import (
 	"runtime"
@@ -7,30 +7,64 @@ import (
 )
 
 type (
+	// The InnerBufferInterface defines a minimal
+	// interface that different buffer implementations
+	// need to implement.
 	InnerBufferInterface interface {
+		// Returns the size of a buffer
 		Size() int
+
+		// Returns the runes in the specified Region.
+		// Implementations should clamp the region
+		// as appropriate.
 		SubstrR(r Region) []rune
+
+		// Inserts the given rune data at the
+		// specified point in the buffer.
 		InsertR(point int, data []rune)
+
+		// Erases "length" units from "point".
 		Erase(point, length int)
+
+		// Returns the rune at the given index
 		Index(int) rune
+
+		// Convert a text position into a row and column.
 		RowCol(point int) (row, col int)
+
+		// Inverse of #RowCol, converting a row and column
+		// into a text position.
 		TextPoint(row, col int) (i int)
+
+		// Close the buffer, freeing any associated resources.
 		Close()
 	}
+
+	// The full buffer interface defines
 	Buffer interface {
 		InnerBufferInterface
 		IdInterface
 		SettingsInterface
 		sync.Locker
+
+		// Add a BufferChangedCallback to the buffer
 		AddCallback(cb BufferChangedCallback)
+
 		SetName(string)
 		Name() string
 		SetFileName(string)
 		FileName() string
+
+		// Inserts the given string at the given location.
+		// Typically just a wrapper around #InsertR
 		Insert(point int, svalue string)
+
+		// Returns the string of the specified Region.
+		// Typically just a wrapper around #SubstrR
 		Substr(r Region) string
+
 		ChangeCount() int
-		// Returns the line at the given offset
+		// Returns the line region at the given offset
 		Line(offset int) Region
 		// Returns a Region starting at the start of a line and ending at the end of a (possibly different) line
 		LineR(r Region) Region
@@ -40,9 +74,15 @@ type (
 		FullLine(offset int) Region
 		// Like #LineR, but includes the line endings
 		FullLineR(r Region) Region
+		// Returns the word region at the given text offset
 		Word(offset int) Region
+		// Returns the Region covering the start of the word in r.Begin()
+		// to the end of the word in r.End()
 		WordR(r Region) Region
 	}
+
+	// The BufferChangedCallback is called everytime a buffer is
+	// changed.
 	BufferChangedCallback func(buf Buffer, position, delta int)
 
 	buffer struct {
@@ -59,6 +99,7 @@ type (
 	}
 )
 
+// Returns a new empty Buffer
 func NewBuffer() Buffer {
 	b := buffer{}
 	b.SerializedBuffer.init(&rebalancingNode{})
