@@ -73,7 +73,7 @@ func (ia *insertAction) Undo() {
 }
 
 func (ea *eraseAction) Apply() {
-	ea.region = ea.region.Clip(Region{0, ea.buffer.Size()})
+	ea.region = ea.region.Intersection(Region{0, ea.buffer.Size()})
 	ea.value = []rune(ea.buffer.Substr(ea.region))
 	ea.point = ea.region.Begin()
 	ea.insertAction.Undo()

@@ -24,6 +24,7 @@ func TestActions(t *testing.T) {
 		{NewEraseAction(buffer, Region{3, 0}), "lo world"},
 		{NewEraseAction(buffer, Region{3, 6}), "helworld"},
 		{NewEraseAction(buffer, Region{12, 12}), "hello world"},
+		{NewEraseAction(buffer, Region{5, 12}), "hello"},
 		{NewReplaceAction(buffer, Region{0, 0}, "test"), "testhello world"},
 		{NewReplaceAction(buffer, Region{0, 1}, "H"), "Hello world"},
 		{NewReplaceAction(buffer, Region{1, 0}, "H"), "Hello world"},
