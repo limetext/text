@@ -34,7 +34,7 @@ func (r *RegionSet) Adjust(position, delta int) {
 // TODO(q): There should be a on modified callback on the RegionSet
 func (r *RegionSet) flush() {
 	sort.Sort(r)
-	for i := 1; i < len(r.regions); i++ {
+	for i := 1; i < len(r.regions); {
 		if r.regions[i-1] == r.regions[i] || r.regions[i-1].Intersects(r.regions[i]) || r.regions[i].Covers(r.regions[i-1]) {
 			r.regions[i-1] = r.regions[i-1].Cover(r.regions[i])
 			copy(r.regions[i:], r.regions[i+1:])

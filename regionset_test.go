@@ -107,3 +107,26 @@ func TestRegionSetCut(t *testing.T) {
 		}
 	}
 }
+
+func TestRegionSetAdd(t *testing.T) {
+	tests := []struct {
+		A   []Region
+		B   Region
+		Out []Region
+	}{
+		{[]Region{{10, 20}}, Region{0, 5}, []Region{{0, 5}, {10, 20}}},
+		{[]Region{{10, 20}}, Region{12, 15}, []Region{{10, 20}}},
+		{[]Region{{10, 20}}, Region{5, 15}, []Region{{5, 20}}},
+		{[]Region{{10, 20}}, Region{15, 25}, []Region{{10, 25}}},
+		{[]Region{{10, 20}}, Region{20, 25}, []Region{{10, 20}, {20, 25}}},
+		{[]Region{{10, 15}, {20, 25}}, Region{12, 23}, []Region{{10, 25}}},
+	}
+	for i, test := range tests {
+		var v RegionSet
+		v.AddAll(test.A)
+		v.Add(test.B)
+		if !reflect.DeepEqual(v.Regions(), test.Out) {
+			t.Errorf("Test %d; Expected %v, got: %v", i, test.Out, v.Regions())
+		}
+	}
+}
