@@ -114,3 +114,17 @@ func (r Region) Intersection(other Region) (ret Region) {
 
 	return ret
 }
+
+// Adjusts the region in place for the given position and delta
+func (r *Region) Adjust(position, delta int) {
+	if r.A >= position {
+		r.A += delta
+	} else if diff := position + delta - r.A; diff < 0 {
+		r.A += diff
+	}
+	if r.B >= position {
+		r.B += delta
+	} else if diff := position + delta - r.B; diff < 0 {
+		r.B += diff
+	}
+}

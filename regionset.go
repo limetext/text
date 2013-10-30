@@ -17,16 +17,7 @@ func (r *RegionSet) Adjust(position, delta int) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	for i := range r.regions {
-		if r.regions[i].A >= position {
-			r.regions[i].A += delta
-		} else if diff := position + delta - r.regions[i].A; diff < 0 {
-			r.regions[i].A += diff
-		}
-		if r.regions[i].B >= position {
-			r.regions[i].B += delta
-		} else if diff := position + delta - r.regions[i].B; diff < 0 {
-			r.regions[i].B += diff
-		}
+		r.regions[i].Adjust(position, delta)
 	}
 	r.flush()
 }
