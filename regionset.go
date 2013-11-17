@@ -7,6 +7,11 @@ import (
 
 // The RegionSet manages multiple regions,
 // merging any regions overlapping.
+//
+// Note that regions that are right next to each other
+// are not merged into a single region. This is because
+// otherwise it would not be possible to have multiple
+// cursors right next to each other.
 type RegionSet struct {
 	regions []Region
 	lock    sync.Mutex
