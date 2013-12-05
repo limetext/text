@@ -1,3 +1,7 @@
+// Copyright 2013 Fredrik Ehnbom
+// Use of this source code is governed by a 2-clause
+// BSD-style license that can be found in the LICENSE file.
+
 package text
 
 import (
@@ -105,14 +109,14 @@ func (r Region) Intersects(other Region) bool {
 // Returns the Region that is the intersection of the two
 // regions given
 func (r Region) Intersection(other Region) (ret Region) {
-	if r.Contains(other.Begin()) || other.Contains(r.Begin()) {
-		r2 := Region{Max(r.Begin(), other.Begin()), Min(r.End(), other.End())}
-		if r2.Size() != 0 {
-			ret = r2
-		}
+	if !r.Contains(other.Begin()) && !other.Contains(r.Begin()) {
+		return
 	}
-
-	return ret
+	r2 := Region{Max(r.Begin(), other.Begin()), Min(r.End(), other.End())}
+	if r2.Size() != 0 {
+		ret = r2
+	}
+	return
 }
 
 // Adjusts the region in place for the given position and delta

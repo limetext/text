@@ -1,3 +1,7 @@
+// Copyright 2013 Fredrik Ehnbom
+// Use of this source code is governed by a 2-clause
+// BSD-style license that can be found in the LICENSE file.
+
 package text
 
 import (
@@ -292,18 +296,19 @@ func (b *buffer) Word(offset int) Region {
 		if !cs {
 			lc = i
 		}
-		if last != cur || ls != cs {
-			ls = cs
-			r := Region{li, i}
-			if r.Contains(col) && i != 0 {
-				r.A, r.B = r.A+lr.Begin(), r.B+lr.Begin()
-				if !(r.B == offset && last) {
-					return r
-				}
-			}
-			li = i
-			last = cur
+		if last == cur && ls == cs {
+			continue
 		}
+		ls = cs
+		r := Region{li, i}
+		if r.Contains(col) && i != 0 {
+			r.A, r.B = r.A+lr.Begin(), r.B+lr.Begin()
+			if !(r.B == offset && last) {
+				return r
+			}
+		}
+		li = i
+		last = cur
 	}
 	r := Region{lr.Begin() + li, lr.End()}
 	lc += lr.Begin()

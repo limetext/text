@@ -1,3 +1,7 @@
+// Copyright 2013 Fredrik Ehnbom
+// Use of this source code is governed by a 2-clause
+// BSD-style license that can be found in the LICENSE file.
+
 package text
 
 import (
@@ -51,13 +55,13 @@ func (s *Settings) SetParent(p SettingsInterface) {
 	defer s.lock.Unlock()
 	if s.parent != nil {
 		old := s.parent.Settings()
-		old.ClearOnChange(fmt.Sprintf("lime.child.%d", s.Id()))
+		old.ClearOnChange(fmt.Sprintf("settings.child.%d", s.Id()))
 	}
 	s.parent = p
 
 	if s.parent != nil {
 		ns := s.parent.Settings()
-		ns.AddOnChange(fmt.Sprintf("lime.child.%d", s.Id()), s.onChange)
+		ns.AddOnChange(fmt.Sprintf("settings.child.%d", s.Id()), s.onChange)
 	}
 }
 

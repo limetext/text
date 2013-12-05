@@ -1,3 +1,7 @@
+// Copyright 2013 Fredrik Ehnbom
+// Use of this source code is governed by a 2-clause
+// BSD-style license that can be found in the LICENSE file.
+
 package text
 
 import (
@@ -58,9 +62,8 @@ func (n *node) Index(pos int) rune {
 	} else if n.weight > pos {
 		if n.left != nil {
 			return n.left.Index(pos)
-		} else {
-			return n.data[pos]
 		}
+		return n.data[pos]
 	}
 	panic(fmt.Sprintf("Index out of bounds: %d >= %d", pos, n.weight))
 }
@@ -88,14 +91,11 @@ func (n *node) SubstrR(r Region) []rune {
 		inner, off := n.find(a)
 		if inner == nil || off >= len(inner.data) {
 			break
-		} else {
-			//			fmt.Println(a, l, off)
-			r := Clamp(0, l, len(inner.data[off:]))
-			data = append(data, inner.data[off:off+r]...)
-			a += r
-			l -= r
 		}
-		//data[i] = //n.Index(i + a)
+		r := Clamp(0, l, len(inner.data[off:]))
+		data = append(data, inner.data[off:off+r]...)
+		a += r
+		l -= r
 	}
 	return data
 }
@@ -116,29 +116,28 @@ func (n *node) find(pos int) (*node, int) {
 
 func (n *node) rc(pos int) (row, col int) {
 	if l := pos - n.weight; l > 0 {
-		if n.right != nil {
-			r, c := n.right.rc(l)
-			if r == 0 {
-				_, c2 := n.left.rc(n.weight)
-				c += c2
-			}
-			return n.lines + r, c
-		} else {
+		if n.right == nil {
 			return n.lines, 0
 		}
+
+		r, c := n.right.rc(l)
+		if r == 0 {
+			_, c2 := n.left.rc(n.weight)
+			c += c2
+		}
+		return n.lines + r, c
 	} else if n.left != nil {
 		return n.left.rc(pos)
-	} else {
-		for i := 0; i < pos && i < len(n.data); i++ {
-			if n.data[i] == '\n' {
-				row++
-				col = 0
-			} else {
-				col++
-			}
-		}
-		return
 	}
+	for i := 0; i < pos && i < len(n.data); i++ {
+		if n.data[i] == '\n' {
+			row++
+			col = 0
+		} else {
+			col++
+		}
+	}
+	return
 }
 
 func (n *node) RowCol(point int) (row, col int) {
@@ -173,16 +172,14 @@ func (n *node) TextPoint(row, col int) (i int) {
 func (n *node) findline(off, line int) (*node, int, int) {
 	if n.leaf() {
 		return n, off, line
-	} else {
-		if line-n.lines <= 0 {
-			return n.left.findline(off, line)
-		} else {
-			if n.right != nil {
-				return n.right.findline(off+n.weight, line-n.lines)
-			}
-			return nil, off + n.weight, 0
-		}
 	}
+	if line-n.lines <= 0 {
+		return n.left.findline(off, line)
+	}
+	if n.right != nil {
+		return n.right.findline(off+n.weight, line-n.lines)
+	}
+	return nil, off + n.weight, 0
 }
 
 func (n *node) simplify() {
@@ -267,17 +264,16 @@ func (n *node) patch() {
 func (n *node) split(pos int) (right *node) {
 	if n.weight < pos {
 		return n.right.split(pos - n.weight)
+	}
+	if n.left != nil {
+		right = n.left.split(pos)
+	} else if n.right != nil {
+		panic("shouldn't get here")
 	} else {
-		if n.left != nil {
-			right = n.left.split(pos)
-		} else if n.right != nil {
-			panic("shouldn't get here")
-		} else {
-			right = newNode(n.data[pos:])
-			n.data = n.data[:pos]
-			n.patch()
-			return right
-		}
+		right = newNode(n.data[pos:])
+		n.data = n.data[:pos]
+		n.patch()
+		return right
 	}
 	if n.right != nil {
 		right = &node{right.weight, right.lines, right, n.right, nil}
