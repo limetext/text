@@ -5,6 +5,7 @@
 package text
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 )
@@ -47,6 +48,10 @@ func (s *Settings) Parent() SettingsInterface {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.parent
+}
+
+func (s *Settings) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &s.data)
 }
 
 // Sets the parent Settings of this Settings object
