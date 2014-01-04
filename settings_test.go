@@ -23,7 +23,7 @@ func TestSettings(t *testing.T) {
 		t.Error(ok, v)
 	}
 
-	s1.Settings().AddOnChange("something", func() {
+	s1.Settings().AddOnChange("something", func(name string) {
 		called = true
 	})
 	s2.Settings().Set("test", true)

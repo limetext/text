@@ -21,7 +21,7 @@ type (
 	SettingsInterface interface {
 		Settings() *Settings
 	}
-	OnChangeCallback func()
+	OnChangeCallback func(name string)
 	settingsMap      map[string]interface{}
 	Settings         struct {
 		HasId
@@ -54,6 +54,10 @@ func (s *Settings) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &s.data)
 }
 
+func (s *Settings) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(&s.data)
+}
+
 // Sets the parent Settings of this Settings object
 func (s *Settings) SetParent(p SettingsInterface) {
 	s.lock.Lock()
@@ -75,6 +79,9 @@ func (s *Settings) SetParent(p SettingsInterface) {
 func (s *Settings) AddOnChange(key string, cb OnChangeCallback) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	if s.onChangeCallbacks == nil {
+		s.onChangeCallbacks = make(map[string]OnChangeCallback)
+	}
 	s.onChangeCallbacks[key] = cb
 }
 
@@ -105,10 +112,10 @@ func (s *Settings) Get(name string, def ...interface{}) interface{} {
 // Sets the setting identified with the given key to
 // the specified value
 func (s *Settings) Set(name string, val interface{}) {
+	s.onChange(name)
 	s.lock.Lock()
 	s.data[name] = val
 	s.lock.Unlock()
-	s.onChange()
 }
 
 // Returns whether the setting identified by this key
@@ -120,9 +127,9 @@ func (s *Settings) Has(name string) bool {
 	return ok
 }
 
-func (s *Settings) onChange() {
+func (s *Settings) onChange(name string) {
 	for _, v := range s.onChangeCallbacks {
-		v()
+		v(name)
 	}
 }
 
@@ -132,13 +139,4 @@ func (s *Settings) Erase(name string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	delete(s.data, name)
-}
-
-func (s *Settings) merge(other settingsMap) {
-	s.lock.Lock()
-	for k, v := range other {
-		s.data[k] = v
-	}
-	s.lock.Unlock()
-	s.onChange()
 }
