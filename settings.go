@@ -112,10 +112,10 @@ func (s *Settings) Get(name string, def ...interface{}) interface{} {
 // Sets the setting identified with the given key to
 // the specified value
 func (s *Settings) Set(name string, val interface{}) {
-	s.onChange(name)
 	s.lock.Lock()
 	s.data[name] = val
 	s.lock.Unlock()
+	s.onChange(name)
 }
 
 // Returns whether the setting identified by this key
