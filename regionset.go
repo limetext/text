@@ -103,6 +103,9 @@ func (r *RegionSet) AddAll(rs []Region) {
 
 // Returns whether the specified region is part of the set
 func (r *RegionSet) Contains(r2 Region) bool {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
 	for i := range r.regions {
 		if r.regions[i] == r2 || (r.regions[i].Contains(r2.Begin()) && r.regions[i].Contains(r2.End())) {
 			return true
@@ -148,6 +151,9 @@ func (r *RegionSet) HasEmpty() bool {
 // Cuts away the provided region from the set, and returns
 // the new set
 func (r *RegionSet) Cut(r2 Region) (ret RegionSet) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
 	for i := 0; i < len(r.regions); i++ {
 		for _, xor := range r.regions[i].Cut(r2) {
 			if !xor.Empty() {
