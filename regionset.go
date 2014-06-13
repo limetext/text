@@ -47,7 +47,10 @@ func (r *RegionSet) flush() {
 
 // Removes the given region from the set
 func (r *RegionSet) Substract(r2 Region) {
-	r.Adjust(r2.Begin(), r2.Size())
+	r3 := r.Cut(r2)
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.regions = r3.regions
 }
 
 // Adds the given region to the set
