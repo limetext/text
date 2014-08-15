@@ -228,7 +228,7 @@ func (b *buffer) Lines(r Region) (lines []Region) {
 	for i, ru := range buf {
 		if ru == '\n' {
 			lines = append(lines, Region{last, r.Begin() + i})
-			last = r.Begin() + i
+			last = r.Begin() + i + 1
 		}
 	}
 	if last != r.End() {

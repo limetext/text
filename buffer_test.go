@@ -95,6 +95,43 @@ func TestRowColLineWord(t *testing.T) {
 	}
 }
 
+func TestLines(t *testing.T) {
+	type Test struct {
+		text   string
+		region Region
+		expect []string
+	}
+
+	tests := []Test{
+		{
+			"a\nb",
+			Region{0, 3},
+			[]string{"a", "b"},
+		},
+		{
+			"a\nb\n",
+			Region{0, 3},
+			[]string{"a", "b"},
+		},
+	}
+
+	for _, test := range tests {
+		var b = NewBuffer()
+		b.Insert(0, test.text)
+		rs := b.Lines(test.region)
+
+		if len(rs) != len(test.expect) {
+			t.Errorf("Length mismatch")
+		}
+		for i, expect := range test.expect {
+			actual := b.Substr(rs[i])
+			if expect != actual {
+				t.Errorf("Expected %s, got %s", expect, actual)
+			}
+		}
+	}
+}
+
 func TestSomething(t *testing.T) {
 	var b = NewBuffer()
 	b.Insert(0, "testaråäöochliteannat€þıœəßðĸʒ×ŋµåäö𝄞")
