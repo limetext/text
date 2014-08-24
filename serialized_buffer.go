@@ -30,9 +30,10 @@ func (s *SerializedBuffer) Close() {
 	if s.inner == nil {
 		return
 	}
+	// Close s.ops indicating that we won't send new data on in this channel.
 	close(s.ops)
-	close(s.lockret)
-	s.inner = nil
+	// The rest of the cleanup will happen once the worker has finished
+	// receiving everything on the s.ops channel
 }
 
 func (s *SerializedBuffer) worker() {
@@ -47,6 +48,9 @@ func (s *SerializedBuffer) worker() {
 			s.lockret <- o()
 		}()
 	}
+	// Done processing all ops, so freeing the other resources here
+	s.inner = nil
+	close(s.lockret)
 }
 
 func (s *SerializedBuffer) Size() int {
