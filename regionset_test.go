@@ -135,6 +135,29 @@ func TestRegionSetAdd(t *testing.T) {
 	}
 }
 
+func TestRegionSetAddAll(t *testing.T) {
+	tests := []struct {
+		in  []Region
+		exp []Region
+	}{
+		{
+			[]Region{{5, 15}, {0, 20}, {100, 90}, {10, 25}, {45, 30}},
+			[]Region{{0, 25}, {100, 90}, {45, 30}},
+		},
+		{
+			[]Region{{100, 50}, {20, 5}, {0, 10}, {30, 40}, {15, 25}},
+			[]Region{{100, 50}, {25, 0}, {30, 40}},
+		},
+	}
+	for i, test := range tests {
+		var v RegionSet
+		v.AddAll(test.in)
+		if !reflect.DeepEqual(v.Regions(), test.exp) {
+			t.Errorf("Test %d; Expected %v, got: %v", i, test.exp, v.Regions())
+		}
+	}
+}
+
 func TestRegionSubtract(t *testing.T) {
 	tests := []struct {
 		A      []Region
