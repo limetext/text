@@ -58,7 +58,11 @@ func (r Region) Size() int {
 
 // Returns a region covering both regions
 func (r Region) Cover(other Region) Region {
-	return Region{Min(r.Begin(), other.Begin()), Max(r.End(), other.End())}
+	if r.A <= r.B {
+		return Region{Min(r.A, other.Begin()), Max(r.B, other.End())}
+	} else {
+		return Region{Max(r.A, other.End()), Min(r.B, other.Begin())}
+	}
 }
 
 // Clips this Region against the Region provided in the argument.
