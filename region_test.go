@@ -5,6 +5,7 @@
 package text
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -95,4 +96,23 @@ func TestContains(t *testing.T) {
 			t.Errorf("Expected %v, but got %v, %v, %v", test.c, res, test.r, test.pos)
 		}
 	}
+}
+
+// Verified against ST3
+func TestCover(t *testing.T) {
+	tests := []struct {
+		a, b Region
+		out  Region
+	}{
+		{Region{0, 1}, Region{1, 0}, Region{0, 1}},
+		{Region{1, 0}, Region{0, 1}, Region{1, 0}},
+		{Region{1, 0}, Region{5, 10}, Region{10, 0}},
+		{Region{5, 10}, Region{1, 0}, Region{0, 10}},
+	}
+	for _, test := range tests {
+		if res := test.a.Cover(test.b); !reflect.DeepEqual(res, test.out) {
+			t.Errorf("Expected %v, but got %v", test.out, res)
+		}
+	}
+
 }
