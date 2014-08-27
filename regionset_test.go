@@ -61,12 +61,12 @@ func TestRegionSetflush(t *testing.T) {
 		t.Errorf("Not as expected: %v", r)
 	}
 	r.Add(Region{5, 10})
-	if !reflect.DeepEqual(r.regions, []Region{{5, 10}, {10, 23}}) {
+	if !reflect.DeepEqual(r.regions, []Region{{10, 23}, {5, 10}}) {
 		t.Errorf("Not as expected: %v", r)
 	}
 
 	r.Add(Region{2, 6})
-	if !reflect.DeepEqual(r.regions, []Region{{2, 10}, {10, 23}}) {
+	if !reflect.DeepEqual(r.regions, []Region{{10, 23}, {2, 10}}) {
 		t.Errorf("Not as expected: %v", r)
 	}
 	r.Clear()
@@ -118,7 +118,7 @@ func TestRegionSetAdd(t *testing.T) {
 		B   Region
 		Out []Region
 	}{
-		{[]Region{{10, 20}}, Region{0, 5}, []Region{{0, 5}, {10, 20}}},
+		{[]Region{{10, 20}}, Region{0, 5}, []Region{{10, 20}, {0, 5}}},
 		{[]Region{{10, 20}}, Region{12, 15}, []Region{{10, 20}}},
 		{[]Region{{10, 20}}, Region{5, 15}, []Region{{5, 20}}},
 		{[]Region{{10, 20}}, Region{15, 25}, []Region{{10, 25}}},
