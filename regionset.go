@@ -5,7 +5,6 @@
 package text
 
 import (
-	"reflect"
 	"sync"
 )
 
@@ -33,19 +32,15 @@ func (r *RegionSet) Adjust(position, delta int) {
 
 // TODO(q): There should be a on modified callback on the RegionSet
 func (r *RegionSet) flush() {
-	var reg []Region
-	for ; !reflect.DeepEqual(r.regions, reg); {
-		reg = make([]Region, len(r.regions))
-		copy(reg, r.regions)
-		for i := 0; i < len(r.regions); i++ {
-			for j := i + 1; j < len(r.regions); {
-				if r.regions[i] == r.regions[j] || r.regions[i].Intersects(r.regions[j]) || r.regions[j].Covers(r.regions[i]) {
-					r.regions[i] = r.regions[i].Cover(r.regions[j])
-					copy(r.regions[j:], r.regions[j + 1:])
-					r.regions = r.regions[:len(r.regions) - 1]
-				} else {
-					j++
-				}
+	for i := 0; i < len(r.regions); i++ {
+		for j := i + 1; j < len(r.regions); {
+			if r.regions[i] == r.regions[j] || r.regions[i].Intersects(r.regions[j]) || r.regions[j].Covers(r.regions[i]) {
+				r.regions[i] = r.regions[i].Cover(r.regions[j])
+				copy(r.regions[j:], r.regions[j + 1:])
+				r.regions = r.regions[:len(r.regions) - 1]
+				j = i + 1
+			} else {
+				j++
 			}
 		}
 	}
