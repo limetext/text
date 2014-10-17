@@ -36,8 +36,8 @@ func (r *RegionSet) flush() {
 		for j := i + 1; j < len(r.regions); {
 			if r.regions[i] == r.regions[j] || r.regions[i].Intersects(r.regions[j]) || r.regions[j].Covers(r.regions[i]) {
 				r.regions[i] = r.regions[i].Cover(r.regions[j])
-				copy(r.regions[j:], r.regions[j + 1:])
-				r.regions = r.regions[:len(r.regions) - 1]
+				copy(r.regions[j:], r.regions[j+1:])
+				r.regions = r.regions[:len(r.regions)-1]
 				j = i + 1
 			} else {
 				j++
