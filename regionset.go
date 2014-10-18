@@ -77,21 +77,6 @@ func (r *RegionSet) Get(i int) Region {
 	return r.regions[i]
 }
 
-// Compares two regions given by their indices
-func (r *RegionSet) Less(i, j int) bool {
-	if bi, bj := r.regions[i].Begin(), r.regions[j].Begin(); bi < bj {
-		return true
-	} else if bi == bj {
-		return r.regions[i].End() < r.regions[j].End()
-	}
-	return false
-}
-
-// Swaps two regions ath the given indices
-func (r *RegionSet) Swap(i, j int) {
-	r.regions[i], r.regions[j] = r.regions[j], r.regions[i]
-}
-
 // Returns the number of regions contained in the set
 func (r *RegionSet) Len() int {
 	return len(r.regions)
