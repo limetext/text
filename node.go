@@ -351,7 +351,7 @@ func (n *node) concat(other *node) {
 	n.patch()
 }
 
-func (n *node) InsertR(position int, r []rune) {
+func (n *node) InsertR(position int, r []rune) error {
 	l := n.Size()
 	position = Clamp(0, l, position)
 	left := newNode(r)
@@ -362,12 +362,14 @@ func (n *node) InsertR(position int, r []rune) {
 		n.concat(left)
 		n.concat(right)
 	}
+	return nil
 }
 
-func (n *node) Erase(position, length int) {
+func (n *node) Erase(position, length int) error {
 	right := n.split(position + length)
 	n.split(position)
 	n.concat(right)
+	return nil
 }
 
 func (n *rebalancingNode) rebalance(add int) {
@@ -378,12 +380,14 @@ func (n *rebalancingNode) rebalance(add int) {
 	}
 }
 
-func (n *rebalancingNode) InsertR(position int, r []rune) {
+func (n *rebalancingNode) InsertR(position int, r []rune) error {
 	n.node.InsertR(position, r)
 	n.rebalance(len(r))
+	return nil
 }
 
-func (n *rebalancingNode) Erase(position, length int) {
+func (n *rebalancingNode) Erase(position, length int) error {
 	n.node.Erase(position, length)
 	n.rebalance(length)
+	return nil
 }
