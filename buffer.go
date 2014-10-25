@@ -255,7 +255,9 @@ func (buf *buffer) InsertR(point int, value []rune) error {
 		return err
 	}
 	defer buf.modUnlock()
-	buf.SerializedBuffer.InsertR(point, value)
+	if err := buf.SerializedBuffer.InsertR(point, value); err != nil {
+		return err
+	}
 	buf.lock.Lock()
 	buf.changecount++
 	buf.lock.Unlock()
