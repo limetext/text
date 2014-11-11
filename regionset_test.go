@@ -5,6 +5,8 @@
 package text
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"reflect"
 	"testing"
 )
@@ -181,6 +183,67 @@ func TestRegionSubtract(t *testing.T) {
 		v.Substract(test.B)
 		if !reflect.DeepEqual(v.Regions(), test.expect) {
 			t.Errorf("Test %d; Expected %v, got: %v", i, test.expect, v.Regions())
+		}
+	}
+}
+
+func TestRegionSetAddAllBig(t *testing.T) {
+	const (
+		infile  = "testdata/regionset_addall.json"
+		outfile = "testdata/regionset_addall_res.json"
+	)
+	var rs RegionSet
+	var data [][]Region
+	d, err := ioutil.ReadFile(infile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(d, &data); err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range data {
+		rs.AddAll(r)
+	}
+	res := rs.Regions()
+	d, err = ioutil.ReadFile(outfile)
+	if err != nil {
+		t.Logf("Couldn't load results file: %s\nCreating it instead", err)
+		d, err = json.Marshal(res)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := ioutil.WriteFile(outfile, d, 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var exp []Region
+	if err := json.Unmarshal(d, &exp); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(exp, res) {
+		t.Errorf("Result doesn't match expectation")
+	}
+}
+
+func BenchmarkRegionSetAddAllBig(t *testing.B) {
+	t.StopTimer()
+	const (
+		infile  = "testdata/regionset_addall.json"
+		outfile = "testdata/regionset_addall_res.json"
+	)
+	var data [][]Region
+	d, err := ioutil.ReadFile(infile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(d, &data); err != nil {
+		t.Fatal(err)
+	}
+	t.StartTimer()
+	for i := 0; i < t.N; i++ {
+		var rs RegionSet
+		for _, r := range data {
+			rs.AddAll(r)
 		}
 	}
 }
