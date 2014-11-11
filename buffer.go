@@ -5,9 +5,12 @@
 package text
 
 import (
+	"code.google.com/p/log4go"
+	"fmt"
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 type (
@@ -25,10 +28,10 @@ type (
 
 		// Inserts the given rune data at the
 		// specified point in the buffer.
-		InsertR(point int, data []rune)
+		InsertR(point int, data []rune) error
 
 		// Erases "length" units from "point".
-		Erase(point, length int)
+		Erase(point, length int) error
 
 		// Returns the rune at the given index
 		Index(int) rune
@@ -44,24 +47,53 @@ type (
 		Close()
 	}
 
+	// An observer (http://en.wikipedia.org/wiki/Observer_pattern) tracking changes
+	// made to a buffer.
+	//
+	// Modifying the buffer from within the callback is not allowed and will result in a NOP.
+	// This is because if there are multiple observers attached to the buffer, they should all first
+	// be up to date with the current change before another one is introduced.
+	BufferObserver interface {
+		// Called after Buffer.Erase has executed.
+		//
+		// Modifying the buffer from within the callback will result in an error/nop, but if
+		// it would work the following would restore the buffer's contents as it was before
+		// Erase was executed:
+		//     changed_buffer.InsertR(region_removed.Begin(), data_removed)
+		Erased(changed_buffer Buffer, region_removed Region, data_removed []rune)
+
+		// Called after Buffer.Insert/InsertR has executed.
+		//
+		// Modifying the buffer from within the callback will result in an error/nop, but if
+		// it would work the following would restore the buffer's contents as it was before
+		// InsertR was executed:
+		//     changed_buffer.Erase(region_inserted.Begin(), region_inserted.Size())
+		Inserted(changed_buffer Buffer, region_inserted Region, data_inserted []rune)
+	}
+
 	// The full buffer interface defines
 	Buffer interface {
 		InnerBufferInterface
 		IdInterface
 		SettingsInterface
-		sync.Locker
 
-		// Add a BufferChangedCallback to the buffer
-		AddCallback(cb BufferChangedCallback)
+		// DEPRECATED! Use AddObserver instead! Add a BufferChangedCallback to the buffer
+		AddCallback(cb BufferChangedCallback) error
 
-		SetName(string)
+		// Adds the given observer to this buffer's list of observers
+		AddObserver(BufferObserver) error
+
+		// Removes the given observer from this buffer's list of observers
+		RemoveObserver(BufferObserver) error
+
+		SetName(string) error
 		Name() string
-		SetFileName(string)
+		SetFileName(string) error
 		FileName() string
 
 		// Inserts the given string at the given location.
 		// Typically just a wrapper around #InsertR
-		Insert(point int, svalue string)
+		Insert(point int, svalue string) error
 
 		// Returns the string of the specified Region.
 		// Typically just a wrapper around #SubstrR
@@ -97,15 +129,27 @@ type (
 		name        string
 		filename    string
 		callbacks   []BufferChangedCallback
+		observers   map[BufferObserver]bool
 
-		sync.Mutex            // Change lock
-		lock       sync.Mutex // All lock
+		inCallbacks int32
+
+		lock sync.Mutex // All lock
 	}
+)
+
+var (
+	ErrObserverAlreadyAdded = fmt.Errorf("Observer has already been added")
+	ErrObserverNotInList    = fmt.Errorf("Observer is not in the list of observers")
+	ErrNothingToInsert      = fmt.Errorf("Nothing to insert")
+	ErrNothingToErase       = fmt.Errorf("Nothing to erase")
+	ErrBufferInCallbacks    = fmt.Errorf("Buffer can not be modified when in a callback")
 )
 
 // Returns a new empty Buffer
 func NewBuffer() Buffer {
-	b := buffer{}
+	b := buffer{
+		observers: make(map[BufferObserver]bool),
+	}
 	b.SerializedBuffer.init(&rebalancingNode{})
 	r := &b
 	runtime.SetFinalizer(r, func(b *buffer) { b.Close() })
@@ -113,16 +157,68 @@ func NewBuffer() Buffer {
 	return r
 }
 
-func (b *buffer) AddCallback(cb BufferChangedCallback) {
-	b.lock.Lock()
-	defer b.lock.Unlock()
-	b.callbacks = append(b.callbacks, cb)
+func (b *buffer) modLock() error {
+	if !atomic.CompareAndSwapInt32(&b.inCallbacks, 0, 1) {
+		return ErrBufferInCallbacks
+	}
+	return nil
 }
 
-func (b *buffer) SetName(n string) {
+func (b *buffer) modUnlock() {
+	if !atomic.CompareAndSwapInt32(&b.inCallbacks, 1, 0) {
+		panic("this shouldn't happen...")
+	}
+}
+
+func (b *buffer) AddObserver(obs BufferObserver) error {
+	if err := b.modLock(); err != nil {
+		return err
+	}
+	defer b.modUnlock()
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	if b.observers[obs] {
+		return ErrObserverAlreadyAdded
+	}
+	b.observers[obs] = true
+	return nil
+}
+
+func (b *buffer) RemoveObserver(obs BufferObserver) error {
+	if err := b.modLock(); err != nil {
+		return err
+	}
+	defer b.modUnlock()
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	if !b.observers[obs] {
+		return ErrObserverNotInList
+	}
+	delete(b.observers, obs)
+	return nil
+}
+
+func (b *buffer) AddCallback(cb BufferChangedCallback) error {
+	if err := b.modLock(); err != nil {
+		return err
+	}
+	defer b.modUnlock()
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	log4go.Warn("github.com/limetext/text/Buffer.AddCallback has been deprecated, please use AddObserver instead")
+	b.callbacks = append(b.callbacks, cb)
+	return nil
+}
+
+func (b *buffer) SetName(n string) error {
+	if err := b.modLock(); err != nil {
+		return err
+	}
+	defer b.modUnlock()
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	b.name = n
+	return nil
 }
 
 func (b *buffer) Name() string {
@@ -137,10 +233,15 @@ func (b *buffer) FileName() string {
 	return b.filename
 }
 
-func (b *buffer) SetFileName(n string) {
+func (b *buffer) SetFileName(n string) error {
+	if err := b.modLock(); err != nil {
+		return err
+	}
+	defer b.modUnlock()
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	b.filename = n
+	return nil
 }
 
 func (buf *buffer) notify(position, delta int) {
@@ -149,31 +250,55 @@ func (buf *buffer) notify(position, delta int) {
 	}
 }
 
-func (buf *buffer) Insert(point int, svalue string) {
+func (buf *buffer) InsertR(point int, value []rune) error {
+	if err := buf.modLock(); err != nil {
+		return err
+	}
+	defer buf.modUnlock()
+	if err := buf.SerializedBuffer.InsertR(point, value); err != nil {
+		return err
+	}
+	buf.lock.Lock()
+	buf.changecount++
+	buf.lock.Unlock()
+	buf.notify(point, len(value))
+	for obs := range buf.observers {
+		obs.Inserted(buf, Region{point, point + len(value)}, value)
+	}
+	return nil
+}
+func (buf *buffer) Insert(point int, svalue string) error {
 	if len(svalue) == 0 {
-		return
+		return ErrNothingToInsert
 	}
 	value := []rune(svalue)
-	buf.SerializedBuffer.InsertR(point, value)
-	buf.Lock()
-	defer buf.Unlock()
-	buf.lock.Lock()
-	defer buf.lock.Unlock()
-	buf.changecount++
-	buf.notify(point, len(value))
+	return buf.InsertR(point, value)
 }
 
-func (buf *buffer) Erase(point, length int) {
-	if length == 0 {
-		return
+func (buf *buffer) Erase(point, length int) error {
+	if err := buf.modLock(); err != nil {
+		return err
 	}
-	buf.Lock()
-	defer buf.Unlock()
+	defer buf.modUnlock()
+	if length <= 0 {
+		return ErrNothingToErase
+	}
 	buf.lock.Lock()
-	defer buf.lock.Unlock()
 	buf.changecount++
-	buf.SerializedBuffer.Erase(point, length)
+	buf.lock.Unlock()
+	re := Region{point, point + length}
+	data := buf.SubstrR(re)
+	// Adjust the region in case original region was longer than the actual buffer
+	re.B = re.A + len(data)
+	if err := buf.SerializedBuffer.Erase(point, length); err != nil {
+		return err
+	}
+
 	buf.notify(point+length, -length)
+	for obs := range buf.observers {
+		obs.Erased(buf, re, data)
+	}
+	return nil
 }
 
 func (b *buffer) Substr(r Region) string {

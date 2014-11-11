@@ -74,14 +74,22 @@ func (s *SerializedBuffer) SubstrR(re Region) []rune {
 	}
 }
 
-func (s *SerializedBuffer) InsertR(point int, data []rune) {
-	s.ops <- func() interface{} { s.inner.InsertR(point, data); return 0 }
-	<-s.lockret
+func (s *SerializedBuffer) InsertR(point int, data []rune) error {
+	s.ops <- func() interface{} { return s.inner.InsertR(point, data) }
+	r := <-s.lockret
+	if r2, ok := r.(error); ok {
+		return r2
+	}
+	return nil
 }
 
-func (s *SerializedBuffer) Erase(point, length int) {
-	s.ops <- func() interface{} { s.inner.Erase(point, length); return 0 }
-	<-s.lockret
+func (s *SerializedBuffer) Erase(point, length int) error {
+	s.ops <- func() interface{} { return s.inner.Erase(point, length) }
+	r := <-s.lockret
+	if r2, ok := r.(error); ok {
+		return r2
+	}
+	return nil
 }
 
 func (s *SerializedBuffer) Index(i int) rune {
