@@ -5,8 +5,8 @@
 package text
 
 import (
-	"code.google.com/p/log4go"
 	"fmt"
+	"github.com/limetext/log4go"
 	"runtime"
 	"strings"
 	"sync"
