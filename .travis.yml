@@ -1,6 +1,6 @@
 language: go
 
-go: 1.3.3
+go: 1.4
 
 script:
   - ./tasks/ci/text.sh
