@@ -113,6 +113,16 @@ func TestLines(t *testing.T) {
 			Region{0, 3},
 			[]string{"a", "b"},
 		},
+		{
+			"a\n\nb",
+			Region{2, 2},
+			[]string{""},
+		},
+		{
+			"a\n\n\nb",
+			Region{2, 3},
+			[]string{"", ""},
+		},
 	}
 
 	for _, test := range tests {
@@ -121,7 +131,7 @@ func TestLines(t *testing.T) {
 		rs := b.Lines(test.region)
 
 		if len(rs) != len(test.expect) {
-			t.Errorf("Length mismatch")
+			t.Fatal("Length mismatch")
 		}
 		for i, expect := range test.expect {
 			actual := b.Substr(rs[i])

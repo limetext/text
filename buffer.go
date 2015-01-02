@@ -347,7 +347,7 @@ eloop:
 }
 
 func (b *buffer) Lines(r Region) (lines []Region) {
-	r = b.LineR(r)
+	r = b.FullLineR(r)
 	buf := b.SubstrR(r)
 	last := r.Begin()
 	for i, ru := range buf {
@@ -359,7 +359,7 @@ func (b *buffer) Lines(r Region) (lines []Region) {
 	if last != r.End() {
 		lines = append(lines, Region{last, r.End()})
 	}
-	return lines
+	return
 }
 
 func (b *buffer) LineR(r Region) Region {
