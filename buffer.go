@@ -75,7 +75,6 @@ type (
 	Buffer interface {
 		InnerBufferInterface
 		IdInterface
-		SettingsInterface
 
 		// DEPRECATED! Use AddObserver instead! Add a BufferChangedCallback to the buffer
 		AddCallback(cb BufferChangedCallback) error
@@ -123,7 +122,6 @@ type (
 
 	buffer struct {
 		HasId
-		HasSettings
 		SerializedBuffer
 		changecount int
 		name        string
@@ -402,9 +400,6 @@ func (b *buffer) Word(offset int) Region {
 	}
 
 	seps := "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?"
-	if v, ok := b.Settings().Get("word_separators", seps).(string); ok {
-		seps = v
-	}
 	spacing := " \n\t\r"
 	eseps := seps + spacing
 
