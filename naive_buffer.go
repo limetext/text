@@ -12,6 +12,9 @@ type (
 	}
 )
 
+func (b *naiveBuffer) Close() {
+}
+
 func (b *naiveBuffer) Size() int {
 	return len(b.data)
 }
@@ -26,7 +29,7 @@ func (buf *naiveBuffer) SubstrR(r Region) []rune {
 	return buf.data[a:b]
 }
 
-func (buf *naiveBuffer) InsertR(point int, value []rune) {
+func (buf *naiveBuffer) InsertR(point int, value []rune) error {
 	point = Clamp(0, len(buf.data), point)
 	req := len(buf.data) + len(value)
 	if cap(buf.data) < req {
@@ -42,13 +45,15 @@ func (buf *naiveBuffer) InsertR(point int, value []rune) {
 		copy(buf.data[point:req], value)
 	}
 	buf.data = buf.data[:req]
+	return nil
 }
 
-func (buf *naiveBuffer) Erase(point, length int) {
+func (buf *naiveBuffer) Erase(point, length int) error {
 	if length == 0 {
-		return
+		return nil
 	}
 	buf.data = append(buf.data[0:point], buf.data[point+length:len(buf.data)]...)
+	return nil
 }
 
 func (b *naiveBuffer) RowCol(point int) (row, col int) {
