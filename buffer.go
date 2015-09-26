@@ -155,6 +155,11 @@ func NewBuffer() Buffer {
 	return r
 }
 
+// implement the fmt.Stringer interface
+func (b *buffer) String() string {
+	return fmt.Sprintf("Buffer{id: %d, name: \"%s\", filename: \"%s\"}", b.Id(), b.Name(), b.FileName())
+}
+
 func (b *buffer) modLock() error {
 	if !atomic.CompareAndSwapInt32(&b.inCallbacks, 0, 1) {
 		return ErrBufferInCallbacks
