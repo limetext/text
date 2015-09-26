@@ -73,6 +73,7 @@ type (
 
 	// The full buffer interface defines
 	Buffer interface {
+		fmt.Stringer
 		InnerBufferInterface
 		IdInterface
 
