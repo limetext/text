@@ -51,10 +51,14 @@ func (s *Settings) Parent() SettingsInterface {
 }
 
 func (s *Settings) UnmarshalJSON(data []byte) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	return json.Unmarshal(data, &s.data)
 }
 
 func (s *Settings) MarshalJSON() (data []byte, err error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	return json.Marshal(&s.data)
 }
 
