@@ -9,11 +9,14 @@ import (
 )
 
 type (
+	// Action defines an interface for Apply-ing and Undo-ing
+	// an action.
 	Action interface {
 		Apply()
 		Undo()
 	}
 
+	// CompositeAction is just a structure containing multiple Action items
 	CompositeAction struct {
 		actions []Action
 	}
@@ -38,12 +41,14 @@ func (ca CompositeAction) String() string {
 	return ret
 }
 
+// Apply all the sub-actions in order of this CompositeAction
 func (ca *CompositeAction) Apply() {
 	for _, a := range ca.actions {
 		a.Apply()
 	}
 }
 
+// Undo all the sub-actions in reverse order of this CompositeAction
 func (ca *CompositeAction) Undo() {
 	l := len(ca.actions) - 1
 	for i := range ca.actions {
@@ -51,19 +56,20 @@ func (ca *CompositeAction) Undo() {
 	}
 }
 
-// Adds the action to this CompositeAction, without first
+// Add adds the action to this CompositeAction, without first
 // executing the action
 func (ca *CompositeAction) Add(a Action) {
 	ca.actions = append(ca.actions, a)
 }
 
-// Executes the provided action and then adds
+// AddExec executes the provided action and then adds
 // the action to this CompositeAction
 func (ca *CompositeAction) AddExec(a Action) {
 	ca.Add(a)
 	ca.actions[len(ca.actions)-1].Apply()
 }
 
+// Len returns the number of sub-actions this CompositeAction object contains
 func (ca *CompositeAction) Len() int {
 	return len(ca.actions)
 }
@@ -95,14 +101,19 @@ func (ea eraseAction) String() string {
 	return fmt.Sprintf("erase %v", ea.region)
 }
 
+// NewEraseAction returns a new action that erases the given region in the given buffer
 func NewEraseAction(b Buffer, region Region) Action {
 	return &eraseAction{insertAction{buffer: b}, region}
 }
 
+// NewInsertAction returns a new action that inserts the given string value at
+// position point in the Buffer b.
 func NewInsertAction(b Buffer, point int, value string) Action {
 	return &insertAction{b, Clamp(0, b.Size(), point), []rune(value)}
 }
 
+// NewReplaceAction returns a new action that replaces the data in the given
+// buffers region with the provided value
 func NewReplaceAction(b Buffer, region Region, value string) Action {
 	return &CompositeAction{[]Action{
 		NewEraseAction(b, region),

@@ -20,7 +20,7 @@ type RegionSet struct {
 	lock    sync.Mutex
 }
 
-// Adjusts all the regions in the set
+// Adjust adjusts all the regions in the set
 func (r *RegionSet) Adjust(position, delta int) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -75,7 +75,7 @@ func (r *RegionSet) flush() {
 	}
 }
 
-// Removes the given region from the set
+// Substract (sic #5) removes the given region from the set
 func (r *RegionSet) Substract(r2 Region) {
 	r3 := r.Cut(r2)
 	r.lock.Lock()
@@ -83,7 +83,7 @@ func (r *RegionSet) Substract(r2 Region) {
 	r.regions = r3.regions
 }
 
-// Adds the given region to the set
+// Add adds the given region to the set
 func (r *RegionSet) Add(r2 Region) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -98,7 +98,7 @@ func (r *RegionSet) Add(r2 Region) {
 	r.merge(ref, ov)
 }
 
-// Clears the set
+// Clear clears the set
 func (r *RegionSet) Clear() {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -106,19 +106,19 @@ func (r *RegionSet) Clear() {
 	r.flush()
 }
 
-// Gets the region at index i
+// Get returns the region at index i
 func (r *RegionSet) Get(i int) Region {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	return r.regions[i]
 }
 
-// Returns the number of regions contained in the set
+// Len returns the number of regions contained in the set
 func (r *RegionSet) Len() int {
 	return len(r.regions)
 }
 
-// Adds all regions in the array to the set
+// AddAll adds all regions in the array to the set, merging any overlapping regions into a single region
 func (r *RegionSet) AddAll(rs []Region) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -146,7 +146,7 @@ func (r *RegionSet) AddAll(rs []Region) {
 	}
 }
 
-// Returns whether the specified region is part of the set
+// Contains returns whether the specified region is part of the set or not
 func (r *RegionSet) Contains(r2 Region) bool {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -159,7 +159,7 @@ func (r *RegionSet) Contains(r2 Region) bool {
 	return false
 }
 
-// Returns a copy of the regions in the set
+// Regions returns a copy of the regions in the set
 func (r *RegionSet) Regions() (ret []Region) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -168,7 +168,7 @@ func (r *RegionSet) Regions() (ret []Region) {
 	return
 }
 
-// Returns whether the set contains at least one
+// HasNonEmpty returns whether the set contains at least one
 // region that isn't empty.
 func (r *RegionSet) HasNonEmpty() bool {
 	r.lock.Lock()
@@ -181,7 +181,7 @@ func (r *RegionSet) HasNonEmpty() bool {
 	return false
 }
 
-// Opposite of #HasNonEmpty
+// HasEmpty returns the opposite of #HasNonEmpty
 func (r *RegionSet) HasEmpty() bool {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -193,7 +193,7 @@ func (r *RegionSet) HasEmpty() bool {
 	return false
 }
 
-// Cuts away the provided region from the set, and returns
+// Cut cuts away the provided region from the set, and returns
 // the new set
 func (r *RegionSet) Cut(r2 Region) (ret RegionSet) {
 	r.lock.Lock()
