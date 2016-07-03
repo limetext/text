@@ -157,8 +157,8 @@ func (s *Settings) Has(name string) bool {
 }
 
 func (s *Settings) onChange(name string) {
-	for _, v := range s.onChangeCallbacks {
-		v(name)
+	for _, cb := range s.onChangeCallbacks {
+		cb(name)
 	}
 }
 
@@ -168,4 +168,5 @@ func (s *Settings) Erase(name string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	delete(s.data, name)
+	s.onChange(name)
 }
