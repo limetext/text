@@ -1,7 +1,44 @@
+sudo: false
+
 language: go
 
-go: 1.4
+matrix:
+  include:
+    - go: 1.5
+      os: linux
+      env: REPORT_COVERAGE=true GO15VENDOREXPERIMENT=1
+    - go: 1.5
+      os: osx
+      env: REPORT_COVERAGE=false GO15VENDOREXPERIMENT=1
+    - go: tip
+      os: linux
+      env: REPORT_COVERAGE=false
+    - go: tip
+      os: osx
+      env: REPORT_COVERAGE=false
+  fast_finish: true
+  allow_failures:
+  - go: tip
+
+addons:
+  apt:
+    sources:
+      - deadsnakes
+    packages:
+      - libonig-dev
+
+install:
+  - make travis cover_dep tasks
 
 script:
-  - ./tasks/ci/text.sh
-  - ./tasks/ci/gofmt.sh
+  - make travis_test
+  - make check_fmt
+  - make check_license
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/3e692a5224c8490f19bd
+    on_success: change
+    on_failure: always
+    on_start: false
