@@ -53,7 +53,32 @@ func (s *Settings) Parent() SettingsInterface {
 func (s *Settings) UnmarshalJSON(data []byte) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	return json.Unmarshal(data, &s.data)
+	// copying settings data
+	old := make(settingsMap)
+	for k, v := range s.data {
+		old[k] = v
+	}
+	// clearing settings data before unmarshalling the new data
+	s.data = make(settingsMap)
+	if err := json.Unmarshal(data, &s.data); err != nil {
+		return err
+	}
+	// checking for any new, modified, deleted setting and calling callbacks
+	for k, v := range old {
+		if v2, ok := s.data[k]; !ok || v2 != v {
+			s.lock.Unlock()
+			s.onChange(k)
+			s.lock.Lock()
+		}
+	}
+	for k, _ := range s.data {
+		if _, ok := old[k]; !ok {
+			s.lock.Unlock()
+			s.onChange(k)
+			s.lock.Lock()
+		}
+	}
+	return nil
 }
 
 func (s *Settings) MarshalJSON() (data []byte, err error) {
