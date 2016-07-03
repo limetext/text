@@ -25,6 +25,7 @@ cover_dep:
 	go get -v -u github.com/axw/gocov/gocov
 
 travis:
+	go get -u github.com/limetext/text
 ifeq ($(TRAVIS_OS_NAME),osx)
 	brew update
 	brew install oniguruma
