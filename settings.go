@@ -138,6 +138,56 @@ func (s *Settings) Get(name string, def ...interface{}) interface{} {
 	return nil
 }
 
+func (s *Settings) Int(name string, def ...interface{}) int {
+	value := s.Get(name, def)
+	switch val := value.(type) {
+	case int64:
+		return int(val)
+	case int:
+		return val
+	case uint64:
+		return int(val)
+	case uint32:
+		return int(val)
+	case uintptr:
+		return int(val)
+	case float32:
+		return int(val)
+	case float64:
+		return int(val)
+	}
+	if len(def) > 0 {
+		if v, k := def[0].(int); k {
+			return v
+		}
+	}
+	panic(fmt.Sprintf("value of %s cannot be represented as an int: %#v", name, value))
+}
+
+func (s *Settings) String(name string, def ...interface{}) string {
+	value, ok := s.Get(name, def).(string)
+	if ok {
+		return value
+	} else if len(def) > 0 {
+		if v, k := def[0].(string); k {
+			return v
+		}
+	}
+	panic(fmt.Sprintf("value of %s cannot be represented as an string: %#v", name, value))
+}
+
+func (s *Settings) Bool(name string, def ...interface{}) bool {
+	value, ok := s.Get(name, def).(bool)
+	if ok {
+		return value
+	} else if len(def) > 0 {
+		if v, k := def[0].(bool); k {
+			return v
+		}
+	}
+	panic(fmt.Sprintf("value of %s cannot be represented as an bool: %#v", name, value))
+}
+
 // Sets the setting identified with the given key to
 // the specified value
 func (s *Settings) Set(name string, val interface{}) {
