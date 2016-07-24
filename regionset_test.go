@@ -180,7 +180,7 @@ func TestRegionSubtract(t *testing.T) {
 	for i, test := range tests {
 		var v RegionSet
 		v.AddAll(test.A)
-		v.Substract(test.B)
+		v.Subtract(test.B)
 		if !reflect.DeepEqual(v.Regions(), test.expect) {
 			t.Errorf("Test %d; Expected %v, got: %v", i, test.expect, v.Regions())
 		}

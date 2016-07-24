@@ -75,8 +75,8 @@ func (r *RegionSet) flush() {
 	}
 }
 
-// Substract (sic #5) removes the given region from the set
-func (r *RegionSet) Substract(r2 Region) {
+// Subtract removes the given region from the set
+func (r *RegionSet) Subtract(r2 Region) {
 	r3 := r.Cut(r2)
 	r.lock.Lock()
 	defer r.lock.Unlock()
