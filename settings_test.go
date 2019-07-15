@@ -76,6 +76,12 @@ func TestCallbacksOnUnmarshal(t *testing.T) {
 			[]string{"b", "c"},
 			map[string]bool{"b": true, "c": true},
 		},
+		{
+			`{"ignored_packages": ["Vintageous"]}`,
+			`{"ignored_packages": ["Six"]}`,
+			[]string{"ignored_packages"},
+			map[string]bool{"ignored_packages": true},
+		},
 	}
 	cnt := make(map[string]bool)
 	cb := func(key string) {
@@ -97,7 +103,7 @@ func TestCallbacksOnUnmarshal(t *testing.T) {
 			t.Errorf("Test %d: Error on unmarshaling after data %s", i, err)
 		}
 		if lcnt, lexp := len(cnt), len(test.exp); lexp != lcnt {
-			t.Errorf("Test %d: map and counted map length difference expected %d, but got %d\nexp: %s\ncnt: %s", i, lexp, lcnt, test.exp, cnt)
+			t.Errorf("Test %d: map and counted map length difference expected %d, but got %d\nexp: %v\ncnt: %v", i, lexp, lcnt, test.exp, cnt)
 			continue
 		}
 		for k, _ := range test.exp {

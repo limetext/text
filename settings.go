@@ -7,6 +7,7 @@ package text
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"sync"
 )
 
@@ -65,7 +66,7 @@ func (s *Settings) UnmarshalJSON(data []byte) error {
 	}
 	// checking for any new, modified, deleted setting and calling callbacks
 	for k, v := range old {
-		if v2, ok := s.data[k]; !ok || v2 != v {
+		if v2, ok := s.data[k]; !ok || !reflect.DeepEqual(v, v2) {
 			s.lock.Unlock()
 			s.onChange(k)
 			s.lock.Lock()
@@ -95,9 +96,7 @@ func (s *Settings) SetParent(p SettingsInterface) {
 		old := s.parent.Settings()
 		old.ClearOnChange(fmt.Sprintf("settings.child.%d", s.Id()))
 	}
-	s.parent = p
-
-	if s.parent != nil {
+	if s.parent = p; s.parent != nil {
 		ns := s.parent.Settings()
 		ns.AddOnChange(fmt.Sprintf("settings.child.%d", s.Id()), s.onChange)
 	}
