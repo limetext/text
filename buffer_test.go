@@ -96,13 +96,11 @@ func TestRowColLineWord(t *testing.T) {
 }
 
 func TestLines(t *testing.T) {
-	type Test struct {
+	tests := []struct {
 		text   string
 		region Region
 		expect []string
-	}
-
-	tests := []Test{
+	}{
 		{
 			"a\nb",
 			Region{0, 3},
@@ -140,16 +138,6 @@ func TestLines(t *testing.T) {
 			}
 		}
 	}
-}
-
-func TestSomething(t *testing.T) {
-	var b = NewBuffer()
-	b.Insert(0, "testaråäöochliteannat€þıœəßðĸʒ×ŋµåäö𝄞")
-	t.Log(b.Line(0))
-	t.Log(b.Word(3))
-	t.Log(b.Word(7))
-	t.Log(b.Word(11))
-	t.Log(b.Word(12))
 }
 
 func fill(data []rune) {

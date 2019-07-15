@@ -77,7 +77,7 @@ func TestNode(t *testing.T) {
 		if sub := test.in.Substr(Region{0, len(test.exp)}); sub != test.exp {
 			t.Fatalf("%d %s != %s", i, sub, test.exp)
 		} else if l := test.in.Size(); l != len(sub) {
-			t.Fatalf("%d %d != %d", l, len(sub))
+			t.Fatalf("%d %d != %d", i, l, len(sub))
 		}
 	}
 }
@@ -353,7 +353,7 @@ func TestNodeErase(t *testing.T) {
 			r := Region{0, b.Size()}
 
 			if b.Size() != n.Size() {
-				t.Fatalf("%d, %d: %d != %d\n%s", m, i, b.Size(), n.Size())
+				t.Fatalf("%d, %d: %d != %d\n", m, i, b.Size(), n.Size())
 			} else if e, a := string(b.SubstrR(r)), string(n.SubstrR(r)); e != a {
 				r = Region{0, 20}
 				e = string(b.SubstrR(r))
