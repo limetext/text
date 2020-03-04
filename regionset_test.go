@@ -247,3 +247,18 @@ func BenchmarkRegionSetAddAllBig(t *testing.B) {
 		}
 	}
 }
+
+func TestAddOnChange(t *testing.T) {
+	i := 0
+	cb := func() {
+		i++
+	}
+
+	var rs RegionSet
+	rs.AddOnChange("test", cb)
+	rs.Add(Region{1, 1})
+
+	if i != 1 {
+		t.Errorf("Expected i to be 1, but got %d", i)
+	}
+}

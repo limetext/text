@@ -16,8 +16,9 @@ import (
 // otherwise it would not be possible to have multiple
 // cursors right next to each other.
 type RegionSet struct {
-	regions []Region
-	lock    sync.Mutex
+	regions           []Region
+	onChangeCallbacks map[string]func()
+	lock              sync.Mutex
 }
 
 // Adjust adjusts all the regions in the set
@@ -64,7 +65,7 @@ func (r *RegionSet) merge(reference int, merge []int) {
 	r.regions = r.regions[:len(r.regions)-len(merge)]
 }
 
-// TODO(q): There should be a on modified callback on the RegionSet
+// Before calling flush lock should be locked
 func (r *RegionSet) flush() {
 	for i := 1; i < len(r.regions); i++ {
 		ov := r.overlaps(r.regions[i], 0, i)
@@ -73,29 +74,38 @@ func (r *RegionSet) flush() {
 		}
 		r.merge(ov[0], append(ov[1:], i))
 	}
+
+	r.lock.Unlock()
+	defer r.lock.Lock()
+	r.onChange()
 }
 
 // Subtract removes the given region from the set
 func (r *RegionSet) Subtract(r2 Region) {
 	r3 := r.Cut(r2)
 	r.lock.Lock()
-	defer r.lock.Unlock()
 	r.regions = r3.regions
+	r.lock.Unlock()
+
+	r.onChange()
 }
 
 // Add adds the given region to the set
 func (r *RegionSet) Add(r2 Region) {
-	r.lock.Lock()
-	defer r.lock.Unlock()
+	func() {
+		r.lock.Lock()
+		defer r.lock.Unlock()
+		ov := r.overlaps(r2, 0, len(r.regions))
+		r.regions = append(r.regions, r2)
+		if len(ov) == 0 {
+			return
+		}
+		ref := ov[0]
+		ov = append(ov[1:], len(r.regions)-1)
+		r.merge(ref, ov)
+	}()
 
-	ov := r.overlaps(r2, 0, len(r.regions))
-	r.regions = append(r.regions, r2)
-	if len(ov) == 0 {
-		return
-	}
-	ref := ov[0]
-	ov = append(ov[1:], len(r.regions)-1)
-	r.merge(ref, ov)
+	r.onChange()
 }
 
 // Clear clears the set
@@ -121,10 +131,11 @@ func (r *RegionSet) Len() int {
 // AddAll adds all regions in the array to the set, merging any overlapping regions into a single region
 func (r *RegionSet) AddAll(rs []Region) {
 	r.lock.Lock()
-	defer r.lock.Unlock()
 	// Merge regions in rs that overlap
 	rr := RegionSet{regions: rs}
+	rr.lock.Lock()
 	rr.flush()
+	rr.lock.Unlock()
 	rs = rr.Regions()
 
 	// r.regions is already by itself maintained
@@ -144,6 +155,9 @@ func (r *RegionSet) AddAll(rs []Region) {
 		r.merge(ref, ov)
 		start -= len(ov)
 	}
+	r.lock.Unlock()
+
+	r.onChange()
 }
 
 // Contains returns whether the specified region is part of the set or not
@@ -207,4 +221,28 @@ func (r *RegionSet) Cut(r2 Region) (ret RegionSet) {
 		}
 	}
 	return
+}
+
+// Adds a callback func() identified with the given key.
+// If a callback is already defined for that name, it is overwritten
+func (r *RegionSet) AddOnChange(key string, cb func()) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	if r.onChangeCallbacks == nil {
+		r.onChangeCallbacks = make(map[string]func())
+	}
+	r.onChangeCallbacks[key] = cb
+}
+
+// Removes the callback func() associated with the given key.
+func (r *RegionSet) ClearOnChange(key string) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	delete(r.onChangeCallbacks, key)
+}
+
+func (r *RegionSet) onChange() {
+	for _, cb := range r.onChangeCallbacks {
+		cb()
+	}
 }

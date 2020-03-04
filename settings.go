@@ -41,7 +41,11 @@ func (s *HasSettings) Settings() *Settings {
 }
 
 func NewSettings() Settings {
-	return Settings{onChangeCallbacks: make(map[string]OnChangeCallback), data: make(settingsMap), parent: nil}
+	return Settings{
+		onChangeCallbacks: make(map[string]OnChangeCallback),
+		data:              make(settingsMap),
+		parent:            nil,
+	}
 }
 
 // Returns the parent Settings of this Settings object
@@ -202,7 +206,7 @@ func (s *Settings) onChange(name string) {
 // from this settings object
 func (s *Settings) Erase(name string) {
 	s.lock.Lock()
-	defer s.lock.Unlock()
 	delete(s.data, name)
+	s.lock.Unlock()
 	s.onChange(name)
 }
